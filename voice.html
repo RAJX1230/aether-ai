@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Mode - AETHER AI</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<meta name="theme-color" content="#0d0d0d">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    background: #0d0d0d;
+    overflow: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .voice-screen {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .exit-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .orb-wrap {
+    width: 220px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .orb {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ff9d7a, #c9553d 55%, #7a3a2a 100%);
+    box-shadow: 0 0 60px rgba(201, 85, 61, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .orb-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 1px solid rgba(201, 85, 61, 0.25);
+  }
+
+  /* idle: gentle breathing */
+  .state-idle .orb {
+    animation: breathe 3s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  /* listening: soft pulse ring */
+  .state-listening .orb {
+    animation: listenPulse 1.4s ease-in-out infinite;
+    box-shadow: 0 0 80px rgba(201, 85, 61, 0.6);
+  }
+  @keyframes listenPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.09); }
+  }
+  .state-listening .orb-ring {
+    animation: ringPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes ringPulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
+  /* thinking: rotating shimmer */
+  .state-thinking .orb {
+    animation: thinkSpin 1.8s linear infinite;
+  }
+  @keyframes thinkSpin {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.3); }
+    100% { filter: brightness(1); }
+  }
+
+  /* speaking: faster active pulse */
+  .state-speaking .orb {
+    animation: speakPulse 0.5s ease-in-out infinite alternate;
+    box-shadow: 0 0 90px rgba(255, 157, 122, 0.7);
+  }
+  @keyframes speakPulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.12); }
+  }
+
+  .status-text {
+    margin-top: 32px;
+    color: #ccc;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+  }
+
+  .transcript {
+    margin-top: 14px;
+    color: #888;
+    font-size: 13px;
+    max-width: 300px;
+    text-align: center;
+    min-height: 20px;
+  }
+
+  .controls {
+    position: absolute;
+    bottom: 50px;
+    display: flex;
+    gap: 20px;
+  }
+  .ctrl-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .ctrl-btn.end { background: #c9553d; border-color: #c9553d; }
+  .ctrl-btn.muted { background: #333; }
+@view-transition { navigation: auto; }
+</style>
+</head>
+<body>
+
+  <div class="voice-screen state-idle" id="voiceScreen">
+    <button class="exit-btn" onclick="window.location.href='index.html'">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+
+    <div class="orb-wrap">
+      <div class="orb-ring"></div>
+      <div class="orb"></div>
+    </div>
+
+    <div class="status-text" id="statusText">Tap mic to start</div>
+    <div class="transcript" id="transcriptText"></div>
+
+    <div class="controls">
+      <button class="ctrl-btn" id="muteBtn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+      </button>
+      <button class="ctrl-btn end" onclick="window.location.href='index.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="voice.js"></script>
+</body>
+</html>

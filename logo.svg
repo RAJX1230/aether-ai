@@ -1,0 +1,48 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f1f1f"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+    <radialGradient id="sparkGrad" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="45%" stop-color="#ff9d7a"/>
+      <stop offset="100%" stop-color="#c9553d"/>
+    </radialGradient>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <g filter="url(#softGlow)" opacity="0.55">
+    <path d="M256 130
+      C264 205 235 249 172 256
+      C235 263 264 307 256 382
+      C248 307 277 263 340 256
+      C277 249 248 205 256 130 Z"
+      fill="#c9553d" opacity="0.5"/>
+  </g>
+
+  <path d="M256 118
+    C265.5 202 235 244 148 256
+    C235 268 265.5 310 256 394
+    C246.5 310 277 268 364 256
+    C277 244 246.5 202 256 118 Z"
+    fill="url(#sparkGrad)"/>
+
+  <path d="M256 118
+    C265.5 202 235 244 148 256
+    C235 268 265.5 310 256 394
+    C246.5 310 277 268 364 256
+    C277 244 246.5 202 256 118 Z"
+    fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+
+  <circle cx="256" cy="256" r="9" fill="#1a0f0a"/>
+  <circle cx="256" cy="256" r="4" fill="#ffffff"/>
+</svg>

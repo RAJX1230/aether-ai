@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snap & Solve - AETHER AI</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<meta name="theme-color" content="#0d0d0d">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  html, body { height: 100%; background: #0d0d0d; overflow-y: auto; }
+  .snap-screen { max-width: 480px; margin: 0 auto; min-height: 100dvh; display: flex; flex-direction: column; }
+
+  .snap-header {
+    display: flex; align-items: center; gap: 14px; padding: 16px; color: #fff;
+  }
+  .snap-header h1 { font-size: 18px; font-weight: 700; flex: 1; }
+  .back-btn { background: transparent; border: none; color: #fff; cursor: pointer; display: flex; }
+
+  .capture-zone {
+    flex-shrink: 0; margin: 0 16px; border: 2px dashed #333; border-radius: 16px;
+    padding: 40px 20px; text-align: center; color: #888; cursor: pointer;
+  }
+  .capture-zone svg { margin-bottom: 10px; }
+  .capture-zone p { font-size: 14px; }
+
+  .preview-img { width: 100%; border-radius: 12px; margin-top: 16px; display: none; }
+
+  .solve-btn {
+    margin: 16px; padding: 14px; border-radius: 24px; border: none;
+    background: #c9553d; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: none;
+  }
+
+  .result-box {
+    display: none; margin: 0 16px 24px; background: #1a1a1a; border-radius: 14px;
+    padding: 16px; color: #eee; font-size: 14.5px; line-height: 1.6;
+  }
+  .result-box strong { color: #ff9d7a; }
+  .result-box.show { display: block; }
+
+  .loading-text { display: none; text-align: center; color: #888; padding: 20px; font-size: 14px; }
+@view-transition { navigation: auto; }
+</style>
+</head>
+<body>
+
+  <div class="snap-screen">
+    <div class="snap-header">
+      <button class="back-btn" onclick="window.location.href='index.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <h1>Snap & Solve</h1>
+    </div>
+
+    <div class="capture-zone" id="captureZone">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <p>Question ya diagram ka photo lo</p>
+    </div>
+    <input type="file" id="snapInput" accept="image/*" capture="environment" hidden>
+
+    <img class="preview-img" id="previewImg">
+
+    <button class="solve-btn" id="solveBtn">Solve Karo</button>
+
+    <div class="loading-text" id="loadingText">AETHER soch raha hai...</div>
+    <div class="result-box" id="resultBox"></div>
+  </div>
+
+  <script src="snap.js"></script>
+</body>
+</html>

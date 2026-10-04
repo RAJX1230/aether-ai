@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group Study - AETHER AI</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<meta name="theme-color" content="#faf9f7">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  html, body { height: 100%; background: #faf9f7; overflow: hidden; }
+  .g-screen { max-width: 480px; margin: 0 auto; height: 100dvh; display: flex; flex-direction: column; }
+
+  .g-header {
+    display: flex; align-items: center; gap: 14px; padding: 16px;
+    background: #fff; border-bottom: 1px solid #f0eee9;
+  }
+  .g-header h1 { font-size: 18px; font-weight: 700; color: #1a1a1a; flex: 1; }
+  .back-btn { background: transparent; border: none; color: #1a1a1a; cursor: pointer; display: flex; }
+  .room-code-badge { font-size: 12px; background: #f4f3ee; padding: 5px 10px; border-radius: 12px; color: #4a453d; }
+
+  .join-screen {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px;
+  }
+  .join-screen h2 { font-size: 20px; color: #1a1a1a; margin-bottom: 8px; }
+  .join-screen p { font-size: 13px; color: #8a8478; margin-bottom: 24px; text-align: center; }
+  .join-screen input {
+    width: 100%; max-width: 260px; padding: 12px; text-align: center; letter-spacing: 4px;
+    font-size: 18px; border-radius: 10px; border: 1px solid #e0dcd3; background: #fff; margin-bottom: 12px; outline: none;
+  }
+  .join-screen button {
+    width: 100%; max-width: 260px; padding: 12px; border-radius: 10px; border: none;
+    background: #1a1a1a; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 6px;
+  }
+  .join-screen .or-divider { margin: 18px 0; color: #b5aea1; font-size: 12px; }
+
+  .g-chat-box { flex: 1; overflow-y: auto; padding: 16px; display: none; flex-direction: column; gap: 10px; }
+  .g-chat-box.show { display: flex; }
+
+  .g-msg { max-width: 82%; padding: 9px 13px; border-radius: 14px; font-size: 14px; line-height: 1.5; }
+  .g-msg .sender { font-size: 11px; font-weight: 700; margin-bottom: 3px; opacity: 0.7; }
+  .g-msg.mine { align-self: flex-end; background: #1a1a1a; color: #fff; border-bottom-right-radius: 4px; }
+  .g-msg.other { align-self: flex-start; background: #f4f3ee; color: #1a1a1a; border-bottom-left-radius: 4px; }
+  .g-msg.ai { align-self: flex-start; background: #fff; border: 1px solid #c9553d; color: #1a1a1a; }
+  .g-msg.ai .sender { color: #c9553d; }
+  .g-msg img { max-width: 100%; border-radius: 8px; display: block; margin-top: 4px; }
+
+  .g-input-area {
+    display: none; padding: 12px; background: #fff; border-top: 1px solid #f0eee9; gap: 6px; align-items: center;
+  }
+  .g-input-area.show { display: flex; }
+  #groupInput {
+    flex: 1; padding: 10px 16px; border-radius: 22px; border: 1px solid #e0dcd3;
+    outline: none; background: #f4f3ee; font-size: 15px; min-width: 0;
+  }
+  .g-icon-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid #e0dcd3;
+    background: #f4f3ee; color: #1a1a1a; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #groupSendBtn { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  #groupMicBtn.listening { background: #c9553d; border-color: #c9553d; color: #fff; }
+@view-transition { navigation: auto; }
+</style>
+</head>
+<body>
+
+  <div class="g-screen">
+    <div class="g-header">
+      <button class="back-btn" onclick="window.location.href='index.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <h1>Group Study</h1>
+      <span class="room-code-badge" id="roomCodeBadge" style="display:none;"></span>
+    </div>
+
+    <div class="join-screen" id="joinScreen">
+      <h2>Group mein padho, saath mein</h2>
+      <p>Room banao ya kisi ka code daal ke join karo. "@aether" likh ke AI ko bulao.</p>
+      <button id="createRoomBtn">+ Naya Room Banao</button>
+      <div class="or-divider">— ya —</div>
+      <input type="text" id="joinCodeInput" placeholder="ROOM CODE" maxlength="6" style="text-transform:uppercase;">
+      <button id="joinRoomBtn">Join Karo</button>
+    </div>
+
+    <div class="g-chat-box" id="groupChatBox"></div>
+
+    <div class="g-input-area" id="groupInputArea">
+      <button class="g-icon-btn" id="groupAttachBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      </button>
+      <input type="file" id="groupFileInput" accept="image/*" hidden>
+      <button class="g-icon-btn" id="groupMicBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+      </button>
+      <input type="text" id="groupInput" placeholder="Message... (@aether se AI ko bulao)">
+      <button class="g-icon-btn" id="groupSendBtn">➤</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="group.js"></script>
+</body>
+</html>

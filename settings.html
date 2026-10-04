@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings - AETHER AI</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="stylesheet" href="style.css">
+<meta name="theme-color" content="#faf9f7">
+</head>
+<body>
+
+  <div class="settings-page">
+    <header class="settings-page-header">
+      <button class="back-btn" onclick="window.location.href='index.html'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <h1>Settings</h1>
+    </header>
+
+    <div class="settings-body">
+
+      <div class="s-card">
+        <div class="s-row">
+          <div class="user-avatar" id="pageAvatar"></div>
+          <div class="s-row-text">
+            <div class="s-row-title" id="pageEmail">Loading...</div>
+            <div class="s-row-sub" id="pageStats">AETHER AI account</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="s-section-label">Appearance</div>
+      <div class="s-card">
+        <div class="s-row-block">
+          <div class="s-row-title">Theme</div>
+          <div class="theme-toggle" style="margin-top:8px;">
+            <button id="pageDarkBtn" class="theme-option">Dark</button>
+            <button id="pageLightBtn" class="theme-option active">Light</button>
+          </div>
+        </div>
+        <div class="s-divider"></div>
+        <div class="s-row-block">
+          <div class="s-row-title">Font Size</div>
+          <div class="font-toggle" style="margin-top:8px;">
+            <button class="pageFontOption font-option" data-size="small">Small</button>
+            <button class="pageFontOption font-option active" data-size="medium">Medium</button>
+            <button class="pageFontOption font-option" data-size="large">Large</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="s-section-label">AI Personality</div>
+      <div class="s-card">
+        <div class="s-row-block">
+          <div class="s-row-title">AI ka naam</div>
+          <input type="text" id="pageAiName" placeholder="AETHER AI" style="margin-top:8px;">
+        </div>
+      </div>
+
+      <div class="s-section-label">Memory</div>
+      <div class="s-card">
+        <div class="s-row-block">
+          <div class="s-row-title">AETHER ko ye yaad hai</div>
+          <div class="s-row-sub" style="margin-top:2px;">Kisi bhi fact ko hataane ke liye ✕ dabayein</div>
+          <div id="memoryList" style="margin-top:12px;"></div>
+        </div>
+        <div class="s-divider" id="memoryClearDivider" style="display:none;"></div>
+        <div class="s-row clickable danger" id="pageClearMemoryBtn" style="display:none;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+          <div class="s-row-text"><div class="s-row-title">Saari memory clear karein</div></div>
+        </div>
+      </div>
+
+      <div class="s-section-label">Backup</div>
+      <div class="s-card">
+        <div class="s-row clickable" id="backupAllBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+          <div class="s-row-text"><div class="s-row-title">Poora Backup Download Karein</div><div class="s-row-sub">Saari chats, images, memory — ek file mein</div></div>
+        </div>
+        <div class="s-divider"></div>
+        <div class="s-row clickable" id="restoreBackupBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9v6a2 2 0 002 2h14a2 2 0 002-2V9"/><path d="M17 4l-5-5-5 5M12 -1v16"/></svg>
+          <div class="s-row-text"><div class="s-row-title">Backup Se Restore Karein</div></div>
+        </div>
+        <input type="file" id="restoreFileInput" accept=".json" hidden>
+      </div>
+
+      <div class="s-section-label">Data</div>
+      <div class="s-card">
+        <div class="s-row clickable" id="pageExportBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+          <div class="s-row-text"><div class="s-row-title">Export current chat</div></div>
+        </div>
+        <div class="s-divider"></div>
+        <div class="s-row clickable danger" id="pageClearBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+          <div class="s-row-text"><div class="s-row-title">Delete all chats</div></div>
+        </div>
+      </div>
+
+      <div class="s-section-label">Account</div>
+      <div class="s-card">
+        <div class="s-row clickable danger" id="pageLogoutBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+          <div class="s-row-text"><div class="s-row-title">Logout</div></div>
+        </div>
+      </div>
+
+      <button class="save-btn" id="pageSaveBtn" style="margin:20px 0 40px;">Save Changes</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

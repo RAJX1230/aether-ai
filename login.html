@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AETHER AI - Login</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="stylesheet" href="style.css">
+<meta name="theme-color" content="#faf9f7">
+</head>
+<body>
+
+  <div class="auth-container">
+    <div class="auth-box">
+      <img src="logo.svg" alt="AETHER" class="auth-logo">
+      <h2 id="authTitle">AETHER AI Login</h2>
+
+      <input type="email" id="emailInput" placeholder="Email">
+
+      <div class="password-field">
+        <input type="password" id="passwordInput" placeholder="Password">
+        <button type="button" id="togglePassword">Show</button>
+      </div>
+
+      <button id="authActionBtn">Login</button>
+
+      <p class="auth-toggle" id="forgotPasswordText">
+        <span id="forgotLink">Password bhool gaye?</span>
+      </p>
+
+      <p class="auth-toggle" id="authToggleText">
+        Naya account nahi hai? <span id="toggleLink">Signup karein</span>
+      </p>
+
+      <p class="auth-error" id="authError"></p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

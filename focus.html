@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus - AETHER AI</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<meta name="theme-color" content="#faf9f7">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  html, body { height: 100%; background: #faf9f7; overflow: hidden; }
+  .focus-screen {
+    max-width: 480px; margin: 0 auto; height: 100dvh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; padding: 24px;
+  }
+  .exit-btn {
+    position: absolute; top: 20px; left: 20px; width: 40px; height: 40px;
+    border-radius: 50%; background: #fff; border: 1px solid #e5e2dd;
+    color: #1a1a1a; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .streak-badge {
+    background: #fff; border: 1px solid #e5e2dd; border-radius: 20px;
+    padding: 8px 18px; font-size: 14px; color: #1a1a1a; font-weight: 600;
+    margin-bottom: 40px;
+  }
+  .timer-ring {
+    width: 240px; height: 240px; border-radius: 50%;
+    border: 6px solid #f0eee9; display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .timer-ring.active { border-color: #c9553d; }
+  .timer-text { font-size: 46px; font-weight: 700; color: #1a1a1a; }
+  .mode-label { margin-top: 22px; font-size: 14px; color: #8a8478; letter-spacing: 0.5px; }
+  .mode-toggle { display: flex; gap: 10px; margin-top: 22px; }
+  .mode-btn {
+    padding: 8px 16px; border-radius: 20px; border: 1px solid #e5e2dd;
+    background: #fff; color: #4a453d; font-size: 13px; cursor: pointer;
+  }
+  .mode-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .main-btn {
+    margin-top: 32px; padding: 14px 44px; border-radius: 26px; border: none;
+    background: #1a1a1a; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+  }
+  .main-btn.stop { background: #c9553d; }
+@view-transition { navigation: auto; }
+</style>
+</head>
+<body>
+
+  <div class="focus-screen">
+    <button class="exit-btn" onclick="window.location.href='index.html'">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+
+    <div class="streak-badge" id="streakBadge">🔥 0 day streak</div>
+
+    <div class="timer-ring" id="timerRing">
+      <div class="timer-text" id="timerText">25:00</div>
+    </div>
+
+    <div class="mode-label" id="modeLabel">FOCUS TIME</div>
+
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="focusModeBtn">Focus 25m</button>
+      <button class="mode-btn" id="breakModeBtn">Break 5m</button>
+    </div>
+
+    <button class="main-btn" id="mainBtn">Start</button>
+  </div>
+
+  <script src="focus.js"></script>
+</body>
+</html>
