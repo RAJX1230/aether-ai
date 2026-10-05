@@ -607,3 +607,113 @@ body.dark-theme .memory-item { background: #1e1e1c; border-color: #33332f; color
 }
 
 @view-transition { navigation: auto; }
+
+
+/* ===== AETHER ATTACHMENT UI FIX ===== */
+
+#filePreview {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 16px !important;
+  padding: 10px !important;
+  margin: 8px 12px !important;
+  min-height: 0 !important;
+  max-height: 150px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  display: none;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+#filePreview.show {
+  display: flex !important;
+}
+
+#filePreview img {
+  width: 100px !important;
+  height: 100px !important;
+  max-width: 100px !important;
+  max-height: 100px !important;
+  object-fit: cover !important;
+  border-radius: 12px !important;
+  background: #f8f9fa !important;
+  display: block !important;
+  flex: 0 0 100px !important;
+}
+
+#filePreview .file-info {
+  color: #374151 !important;
+  background: transparent !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  flex: 1 !important;
+}
+
+#filePreview .remove-file {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  border-radius: 50% !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  color: #374151 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Sent image inside user message */
+.file-chip {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 14px !important;
+  padding: 6px !important;
+  overflow: hidden !important;
+  max-width: min(260px, 72vw) !important;
+  box-sizing: border-box !important;
+}
+
+.file-chip img {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: min(248px, 68vw) !important;
+  max-height: 280px !important;
+  object-fit: contain !important;
+  border-radius: 10px !important;
+  background: #ffffff !important;
+}
+
+/* Keep normal file attachments compact */
+.file-chip:not(:has(img)) {
+  padding: 9px 12px !important;
+  background: #ffffff !important;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  #filePreview {
+    margin: 6px 8px !important;
+    padding: 8px !important;
+    max-height: 125px !important;
+    border-radius: 14px !important;
+  }
+
+  #filePreview img {
+    width: 82px !important;
+    height: 82px !important;
+    max-width: 82px !important;
+    max-height: 82px !important;
+    flex-basis: 82px !important;
+  }
+
+  .file-chip {
+    max-width: 78vw !important;
+  }
+
+  .file-chip img {
+    max-width: 72vw !important;
+    max-height: 260px !important;
+  }
+}
