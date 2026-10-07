@@ -868,10 +868,11 @@ Pehle apni soch 1-2 line mein "Thinking:" ke baad likho — genuinely soch ke. F
 Agar user koi naya important fact bataye, to Answer ke end mein: MEMORY: <fact>. Agar naya fact nahi hai, to MEMORY line mat likhna.`;
 
     const apiHistory = history.slice(chat.summarizedUpTo || 0);
+    const providerParam = settings.aiModel === "fast" ? "?provider=groq" : "";
 
     let data;
     for (let i = 0; i < 3; i++) {
-      const response = await fetch(API_URL, {
+      const response = await fetch(API_URL + providerParam, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: currentAbortController.signal,
