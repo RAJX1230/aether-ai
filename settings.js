@@ -11,6 +11,8 @@ const pageEmail = document.getElementById("pageEmail");
 const pageStats = document.getElementById("pageStats");
 const pageDarkBtn = document.getElementById("pageDarkBtn");
 const pageLightBtn = document.getElementById("pageLightBtn");
+const modelSmartBtn = document.getElementById("modelSmartBtn");
+const modelFastBtn = document.getElementById("modelFastBtn");
 const pageAiName = document.getElementById("pageAiName");
 const memoryList = document.getElementById("memoryList");
 const pageClearMemoryBtn = document.getElementById("pageClearMemoryBtn");
@@ -83,6 +85,10 @@ function applyPageSettings() {
   pageDarkBtn.classList.toggle("active", pageSettings.theme === "dark");
   pageLightBtn.classList.toggle("active", pageSettings.theme === "light");
 
+  const selectedModel = pageSettings.aiModel || "smart";
+  if (modelSmartBtn) modelSmartBtn.classList.toggle("active", selectedModel !== "fast");
+  if (modelFastBtn) modelFastBtn.classList.toggle("active", selectedModel === "fast");
+
   document.querySelectorAll(".pageFontOption").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.size === pageSettings.fontSize);
   });
@@ -90,6 +96,22 @@ function applyPageSettings() {
 
 pageDarkBtn.addEventListener("click", () => { pageSettings.theme = "dark"; applyPageSettings(); });
 pageLightBtn.addEventListener("click", () => { pageSettings.theme = "light"; applyPageSettings(); });
+
+if (modelSmartBtn) {
+  modelSmartBtn.addEventListener("click", () => {
+    pageSettings.aiModel = "smart";
+    applyPageSettings();
+    savePageSettings();
+  });
+}
+
+if (modelFastBtn) {
+  modelFastBtn.addEventListener("click", () => {
+    pageSettings.aiModel = "fast";
+    applyPageSettings();
+    savePageSettings();
+  });
+}
 
 document.querySelectorAll(".pageFontOption").forEach(btn => {
   btn.addEventListener("click", () => { pageSettings.fontSize = btn.dataset.size; applyPageSettings(); });
