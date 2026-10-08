@@ -977,8 +977,17 @@ async function sendMessage() {
   const history = getCurrentHistory();
   if (history.length === 0) chatBox.innerHTML = "";
 
-  if (question.toLowerCase().startsWith("/image ")) {
-    const imgPrompt = question.slice(7).trim();
+  const lowerQuestion = question.toLowerCase().trim();
+  const explicitImageCommand = lowerQuestion.startsWith("/image ");
+  const automaticImageRequest =
+    /^(please\s+)?(generate|create|make|draw|design|paint)\s+(me\s+)?(an?\s+)?(image|picture|photo|illustration|artwork|drawing)\b/i.test(question) ||
+    /^(please\s+)?(show|draw|create|generate)\s+(me\s+)?(a\s+)?(picture|photo|image)\s+of\b/i.test(question) ||
+    /^(image|picture|photo)\s+of\b/i.test(question);
+
+  if (explicitImageCommand || automaticImageRequest) {
+    const imgPrompt = explicitImageCommand
+      ? question.slice(7).trim()
+      : question.trim();
     addUserMessage(question, history.length, null);
     userInput.value = "";
     history.push({ role: "user", parts: [{ text: question }] });
