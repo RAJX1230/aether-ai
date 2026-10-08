@@ -805,18 +805,26 @@ async function generateImageFlow(prompt) {
   const thinkingEl = addThinkingDots(settings.aiName + " image bana raha hai");
 
   try {
-    const seed = Math.floor(Math.random() * 1000000);
-    const enhancedPrompt = prompt + ", highly detailed, sharp focus, professional quality, cinematic lighting, 4k";
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux&enhance=true`;
+    const response = await fetch(
+      "https://aether-proxy.tstngfrm.workers.dev?provider=image",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: prompt + ", highly detailed, sharp focus, professional quality, cinematic lighting",
+          width: 1024,
+          height: 1024
+        })
+      }
+    );
 
-    const img = new Image();
-    img.crossOrigin = "anonymous";
+    const data = await response.json();
 
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = imageUrl;
-    });
+    if (!response.ok || !data.image_url) {
+      throw new Error(data?.error?.message || "Image generation failed");
+    }
+
+    const imageUrl = data.image_url;
 
     thinkingEl.remove();
     addAIImageMessage(null, null, imageUrl);
@@ -826,12 +834,13 @@ async function generateImageFlow(prompt) {
 
   } catch (err) {
     thinkingEl.remove();
-    addAIMessage("Image generate nahi ho payi (free service busy ho sakta hai), dobara try karein 🙏", false, true);
+    console.error("AETHER image generation error:", err);
+    addAIMessage("Image generate nahi ho payi. Service busy ho sakti hai ya request fail hui hai. Dobara try karein.", false, true);
     addRetryButton(() => generateImageFlow(prompt));
+  } finally {
+    sendBtn.disabled = false;
+    isGenerating = false;
   }
-
-  sendBtn.disabled = false;
-  isGenerating = false;
 }
 
 async function generateResponse() {
