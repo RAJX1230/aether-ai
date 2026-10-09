@@ -87,6 +87,15 @@ forgotLink.addEventListener("click", () => {
     });
 });
 
+document.getElementById("googleLoginBtn").addEventListener("click", () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider)
+    .then(() => { window.location.href = "index.html"; })
+    .catch((err) => {
+      authError.innerText = "Google login nahi ho paya, dobara try karein.";
+    });
+});
+
 authActionBtn.addEventListener("click", () => {
   const email = emailInput.value.trim();
   const password = passwordInput.value.trim();
