@@ -986,7 +986,8 @@ async function sendMessage() {
   const automaticImageRequest =
     /^(please\s+)?(generate|create|make|draw|design|paint)\s+(me\s+)?(an?\s+)?(image|picture|photo|illustration|artwork|drawing)\b/i.test(question) ||
     /^(please\s+)?(show|draw|create|generate)\s+(me\s+)?(a\s+)?(picture|photo|image)\s+of\b/i.test(question) ||
-    /^(image|picture|photo)\s+of\b/i.test(question);
+    /^(image|picture|photo)\s+of\b/i.test(question) ||
+    /^(please\s+)?(draw|paint|illustrate)\s+(me\s+)?(a|an|the)\s+\w+/i.test(question);
 
   if (explicitImageCommand || automaticImageRequest) {
     const imgPrompt = explicitImageCommand
