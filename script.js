@@ -1097,7 +1097,8 @@ async function initApp() {
     if (c.summarizedUpTo === undefined) c.summarizedUpTo = 0;
   });
 
-  currentChatId = null;
+  const savedChatId = localStorage.getItem("aether_current_chat_" + currentUserEmail);
+  currentChatId = savedChatId && chats[savedChatId] ? savedChatId : null;
 
   userAvatar.innerText = getFirstName().charAt(0);
   applySettings();
