@@ -971,8 +971,8 @@ async function sendMessage() {
   }
   lastMessageTime = now;
 
-  if (question.length > 2000) {
-    alert("Message bahut lamba hai (max 2000 characters).");
+  if (question.length > 20000) {
+    alert("Message bahut lamba hai (max 20000 characters).");
     return;
   }
 
