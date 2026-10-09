@@ -139,6 +139,10 @@ function applySettings() {
 }
 
 settingsBtn.addEventListener("click", () => {
+  if (currentUserEmail) {
+    localStorage.setItem("aether_current_chat_" + currentUserEmail, currentChatId || "");
+    localStorage.setItem("aether_chats_" + currentUserEmail, JSON.stringify(chats));
+  }
   window.location.href = "settings.html";
 });
 
