@@ -626,14 +626,30 @@ function buildAIMessageActions(text, isLast) {
 function addAIMessage(text, isLast, animate) {
   const msg = document.createElement("div");
   msg.className = "message ai-msg";
-  const hasCode = text.includes("```");
-  if (hasCode) msg.classList.add("has-code");
+
+  if (text.includes("```")) msg.classList.add("has-code");
+
+  // Follow new content only while the user is near the bottom.
+  const nearBottom = () =>
+    chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 100;
+
+  let followOutput = nearBottom();
+
+  const keepInView = () => {
+    if (followOutput && nearBottom()) {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    } else if (!nearBottom()) {
+      followOutput = false;
+    }
+  };
+
   chatBox.appendChild(msg);
-  chatBox.scrollTop = chatBox.scrollHeight;
+  keepInView();
 
   if (!animate) {
     msg.innerHTML = formatText(text);
     msg.appendChild(buildAIMessageActions(text, isLast));
+    keepInView();
     return msg;
   }
 
@@ -643,18 +659,26 @@ function addAIMessage(text, isLast, animate) {
   msg.appendChild(textHolder);
 
   let i = 0;
-  const step = Math.max(2, Math.round(text.length / 120));
+  const step = Math.max(2, Math.ceil(text.length / 100));
+
   const interval = setInterval(() => {
-    i += step;
-    textHolder.innerText = text.slice(0, i);
-    chatBox.scrollTop = chatBox.scrollHeight;
+    // Stop work if the message was removed, for example when switching chats.
+    if (!msg.isConnected) {
+      clearInterval(interval);
+      return;
+    }
+
+    i = Math.min(i + step, text.length);
+    textHolder.textContent = text.slice(0, i);
+    keepInView();
+
     if (i >= text.length) {
       clearInterval(interval);
       msg.innerHTML = formatText(text);
       msg.appendChild(buildAIMessageActions(text, isLast));
-      chatBox.scrollTop = chatBox.scrollHeight;
+      keepInView();
     }
-  }, 18);
+  }, 20);
 
   return msg;
 }
