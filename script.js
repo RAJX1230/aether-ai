@@ -75,6 +75,7 @@ let isGenerating = false;
 let codeBlockStore = {};
 let codeBlockCounter = 0;
 let pendingFile = null;
+let pendingFiles = [];
 let settings = { theme: "light", fontSize: "medium", aiName: "AETHER AI" };
 let saveTimeout = null;
 
@@ -169,52 +170,61 @@ filesOption.addEventListener("click", () => {
   filesInput.click();
 });
 
-function handleFileSelect(file) {
-  if (!file) return;
+function handleFileSelect(fileOrFiles) {
+  const files = Array.from(
+    fileOrFiles && typeof fileOrFiles.length === "number" &&
+    !("name" in fileOrFiles) ? fileOrFiles : [fileOrFiles]
+  ).filter(Boolean);
 
-  if (file.size > 10 * 1024 * 1024) {
-    alert("File 10MB se badi hai, chhoti file try karein.");
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    if (typeof reader.result !== "string" || !reader.result.includes(",")) {
-      alert("File read nahi ho paayi. Dobara try karein.");
-      return;
+  for (const file of files) {
+    if (pendingFiles.length >= 5) {
+      alert("Ek message mein maximum 5 files attach kar sakte ho.");
+      break;
     }
 
-    const base64Data = reader.result.split(",")[1];
-    if (!base64Data) {
-      alert("File khaali hai ya read nahi ho paayi.");
-      return;
+    const type = file.type || (
+      /\.pdf$/i.test(file.name) ? "application/pdf" :
+      /\.txt$/i.test(file.name) ? "text/plain" : ""
+    );
+    const allowed = type.startsWith("image/") ||
+      type === "application/pdf" || type === "text/plain";
+
+    if (!allowed) {
+      alert(file.name + ": sirf image, PDF aur TXT files supported hain.");
+      continue;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert(file.name + ": file 10 MB se chhoti honi chahiye.");
+      continue;
+    }
+    if (pendingFiles.some(x => x.name === file.name && x.size === file.size)) {
+      continue;
     }
 
-    pendingFile = {
-      name: file.name,
-      mimeType: file.type || (
-        file.name.toLowerCase().endsWith(".pdf")
-          ? "application/pdf"
-          : file.name.toLowerCase().endsWith(".txt")
-            ? "text/plain"
-            : "application/octet-stream"
-      ),
-      base64: base64Data
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== "string" || !reader.result.includes(",")) {
+        alert(file.name + ": file read nahi ho paayi.");
+        return;
+      }
+      const base64 = reader.result.split(",")[1];
+      if (!base64) {
+        alert(file.name + ": file khaali hai.");
+        return;
+      }
+
+      pendingFiles.push({
+        name: file.name,
+        size: file.size,
+        mimeType: type,
+        base64
+      });
+      pendingFile = pendingFiles[pendingFiles.length - 1];
+      showFilePreview();
     };
-
-    showFilePreview();
-  };
-
-  reader.onerror = () => {
-    alert("File read karne mein problem hui. Dobara try karein.");
-  };
-
-  reader.onabort = () => {
-    alert("File reading cancel ho gayi.");
-  };
-
-  reader.readAsDataURL(file);
+    reader.onerror = () => alert(file.name + ": file read nahi ho paayi.");
+    reader.readAsDataURL(file);
+  }
 }
 
 cameraInput.addEventListener("change", () => {
@@ -222,51 +232,69 @@ cameraInput.addEventListener("change", () => {
   cameraInput.value = "";
 });
 galleryInput.addEventListener("change", () => {
-  handleFileSelect(galleryInput.files[0]);
+  handleFileSelect(galleryInput.files);
   galleryInput.value = "";
 });
 filesInput.addEventListener("change", () => {
-  handleFileSelect(filesInput.files[0]);
+  handleFileSelect(filesInput.files);
   filesInput.value = "";
 });
 
 function showFilePreview() {
-  filePreview.classList.add("show");
   filePreview.innerHTML = "";
+  if (!pendingFiles.length && pendingFile) pendingFiles = [pendingFile];
 
-  if (pendingFile.mimeType.startsWith("image/")) {
-    const img = document.createElement("img");
-    img.src = `data:${pendingFile.mimeType};base64,${pendingFile.base64}`;
-    filePreview.appendChild(img);
-  }
-
-  const info = document.createElement("div");
-  info.className = "file-info";
-
-  const mimeType = pendingFile.mimeType || "";
-  const fileName = pendingFile.name || "Attached file";
-
-  if (mimeType.startsWith("image/")) {
-    info.innerText = fileName;
-  } else if (mimeType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf")) {
-    info.innerText = "PDF attached: " + fileName;
-  } else if (mimeType.startsWith("text/") || fileName.toLowerCase().endsWith(".txt")) {
-    info.innerText = "Text file attached: " + fileName;
-  } else {
-    info.innerText = "File attached: " + fileName;
-  }
-
-  filePreview.appendChild(info);
-
-  const removeBtn = document.createElement("button");
-  removeBtn.className = "remove-file";
-  removeBtn.innerText = "✕";
-  removeBtn.onclick = () => {
-    pendingFile = null;
+  if (!pendingFiles.length) {
     filePreview.classList.remove("show");
-    filePreview.innerHTML = "";
-  };
-  filePreview.appendChild(removeBtn);
+    return;
+  }
+  filePreview.classList.add("show");
+
+  pendingFiles.forEach((file, index) => {
+    const card = document.createElement("div");
+    card.className = "file-preview-item";
+
+    if (file.mimeType.startsWith("image/")) {
+      const img = document.createElement("img");
+      img.className = "file-preview-thumb";
+      img.alt = file.name;
+      img.src = `data:${file.mimeType};base64,${file.base64}`;
+      card.appendChild(img);
+    } else {
+      const icon = document.createElement("span");
+      icon.className = "file-preview-icon";
+      icon.textContent = file.mimeType === "application/pdf" ? "PDF" : "TXT";
+      card.appendChild(icon);
+    }
+
+    const info = document.createElement("div");
+    info.className = "file-info";
+    const name = document.createElement("div");
+    name.className = "file-name";
+    name.textContent = file.name;
+    const size = document.createElement("div");
+    size.className = "file-size";
+    size.textContent = file.size
+      ? (file.size < 1048576
+          ? Math.max(1, Math.round(file.size / 1024)) + " KB"
+          : (file.size / 1048576).toFixed(1) + " MB")
+      : "Attached";
+    info.append(name, size);
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove-file";
+    remove.textContent = "×";
+    remove.setAttribute("aria-label", "Remove " + file.name);
+    remove.addEventListener("click", () => {
+      pendingFiles.splice(index, 1);
+      pendingFile = pendingFiles[pendingFiles.length - 1] || null;
+      showFilePreview();
+    });
+
+    card.append(info, remove);
+    filePreview.appendChild(card);
+  });
 }
 
 function createNewChat() {
@@ -516,28 +544,33 @@ function speakText(text) {
 function addUserMessage(text, index, fileData) {
   const msg = document.createElement("div");
   msg.className = "message user-msg";
+  const files = Array.isArray(fileData) ? fileData : (fileData ? [fileData] : []);
 
-  if (fileData) {
-    if (fileData.notSynced) {
+  files.forEach(file => {
+    if (file.notSynced) {
       const chip = document.createElement("div");
       chip.className = "file-chip";
-      chip.innerText = "📎 " + fileData.name + " (is device tak limited)";
+      chip.textContent = "📎 " + file.name + " (sirf doosre device par sync nahi hua)";
       msg.appendChild(chip);
-    } else if (fileData.mimeType.startsWith("image/")) {
+    } else if (file.mimeType && file.mimeType.startsWith("image/") && file.base64) {
       const img = document.createElement("img");
-      img.src = `data:${fileData.mimeType};base64,${fileData.base64}`;
+      img.className = "chat-attachment-image";
+      img.alt = file.name || "Attached image";
+      img.loading = "lazy";
+      img.src = `data:${file.mimeType};base64,${file.base64}`;
       msg.appendChild(img);
     } else {
       const chip = document.createElement("div");
       chip.className = "file-chip";
-      chip.innerText = "📎 " + fileData.name;
+      chip.textContent = "📎 " + (file.name || "Attached file");
       msg.appendChild(chip);
     }
-  }
+  });
 
   if (text) {
     const textDiv = document.createElement("div");
-    textDiv.innerText = text;
+    textDiv.className = "message-text";
+    textDiv.textContent = text;
     msg.appendChild(textDiv);
   }
 
@@ -744,18 +777,47 @@ function getModeInstruction(latestUserText) {
 
 function showWelcome() {
   chatBox.innerHTML = `
-    <div class="welcome-screen">
-      <h2>Welcome, ${getFirstName()}!</h2>
-      <p>Kuch bhi pucho — ya try karo: /explain, /quiz, /summarize, /flashcards, /debug</p>
-      <div class="suggestions">
-        <div class="suggestion-chip" data-text="/explain photosynthesis kaise hoti hai">Explain karo</div>
-        <div class="suggestion-chip" data-text="/debug ">Debug code</div>
-        <div class="suggestion-chip" data-text="Ek motivational quote batao">Motivation</div>
-        <div class="suggestion-chip" data-text="Mera naam kya hai">Naam pucho</div>
+    <section class="welcome-screen">
+      <div class="welcome-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" fill="none">
+          <rect x="2" y="2" width="44" height="44" rx="15"
+            fill="currentColor" fill-opacity=".09"/>
+          <path d="M24 10L27.5 20.5L38 24L27.5 27.5L24 38L20.5 27.5L10 24L20.5 20.5L24 10Z"
+            fill="currentColor"/>
+        </svg>
       </div>
-    </div>`;
+      <div class="welcome-eyebrow">YOUR AI WORKSPACE</div>
+      <h2>Welcome, ${getFirstName()}<span class="welcome-period">.</span></h2>
+      <p class="welcome-description">
+        What would you like to explore today? Ask a question or choose a place to start.
+      </p>
+      <div class="suggestions-heading">GET STARTED</div>
+      <div class="suggestions">
+        <button type="button" class="suggestion-chip" data-text="/explain how does photosynthesis work">
+          <span class="suggestion-icon explain-icon">E</span>
+          <span class="suggestion-copy"><strong>Explain a topic</strong><small>Understand any concept</small></span>
+          <span class="suggestion-arrow">↗</span>
+        </button>
+        <button type="button" class="suggestion-chip" data-text="/debug ">
+          <span class="suggestion-icon debug-icon">{ }</span>
+          <span class="suggestion-copy"><strong>Debug code</strong><small>Find and fix code issues</small></span>
+          <span class="suggestion-arrow">↗</span>
+        </button>
+        <button type="button" class="suggestion-chip" data-text="Give me a motivational quote">
+          <span class="suggestion-icon focus-icon">✳</span>
+          <span class="suggestion-copy"><strong>Find motivation</strong><small>Find a little inspiration</small></span>
+          <span class="suggestion-arrow">↗</span>
+        </button>
+        <button type="button" class="suggestion-chip" data-text="What do you remember about me?">
+          <span class="suggestion-icon ask-icon">?</span>
+          <span class="suggestion-copy"><strong>Test your AI</strong><small>Test what your AI remembers</small></span>
+          <span class="suggestion-arrow">↗</span>
+        </button>
+      </div>
+      <div class="welcome-footer"><span class="welcome-status-dot"></span> Ready when you are</div>
+    </section>`;
 
-  document.querySelectorAll(".suggestion-chip").forEach(chip => {
+  chatBox.querySelectorAll(".suggestion-chip").forEach(chip => {
     chip.addEventListener("click", () => {
       userInput.value = chip.dataset.text;
       userInput.focus();
@@ -774,19 +836,16 @@ function renderMessages() {
 
   history.forEach((item, idx) => {
     if (item.role === "user") {
-      const textPart = item.parts.find(p => p.text);
-      const filePart = item.parts.find(p => p.inline_data);
-      const strippedPart = item.parts.find(p => p.strippedImage);
-      let fileData = null;
-      if (filePart) {
-        fileData = {
-          mimeType: filePart.inline_data.mime_type,
-          base64: filePart.inline_data.data,
-          name: filePart.fileName || "File"
-        };
-      } else if (strippedPart) {
-        fileData = { notSynced: true, name: strippedPart.fileName || "Image" };
-      }
+      const textPart = item.parts.find(p => p.text !== undefined);
+      const fileData = item.parts
+        .filter(p => p.inline_data || p.strippedImage)
+        .map(p => p.inline_data
+          ? {
+              mimeType: p.inline_data.mime_type || "application/octet-stream",
+              base64: p.inline_data.data,
+              name: p.fileName || "File"
+            }
+          : { notSynced: true, name: p.fileName || "File" });
       addUserMessage(textPart ? textPart.text : "", idx, fileData);
     } else {
       const imgPart = item.parts.find(p => p.inline_data);
@@ -1037,7 +1096,7 @@ let lastMessageTime = 0;
 
 async function sendMessage() {
   const question = userInput.value.trim();
-  if ((!question && !pendingFile) || isGenerating) return;
+  if ((!question && !pendingFiles.length && !pendingFile) || isGenerating) return;
 
   const now = Date.now();
   if (now - lastMessageTime < 1200) {
@@ -1064,7 +1123,7 @@ async function sendMessage() {
     /^(please\s+)?(draw|paint|illustrate)\s+(me\s+)?(a|an|the)\s+\w+/i.test(question);
 
   // Keep attachments in normal chat instead of routing them to image generation.
-  if ((explicitImageCommand || automaticImageRequest) && !pendingFile) {
+  if ((explicitImageCommand || automaticImageRequest) && !pendingFiles.length && !pendingFile) {
     const imgPrompt = explicitImageCommand
       ? question.slice(7).trim()
       : question.trim();
@@ -1081,31 +1140,29 @@ async function sendMessage() {
   }
 
   const parts = [];
-  let fileForDisplay = null;
+  const filesToSend = pendingFiles.length ? [...pendingFiles] : (pendingFile ? [pendingFile] : []);
 
-  if (pendingFile) {
+  filesToSend.forEach(file => {
     parts.push({
-      inline_data: { mime_type: pendingFile.mimeType, data: pendingFile.base64 },
-      fileName: pendingFile.name
+      inline_data: { mime_type: file.mimeType, data: file.base64 },
+      fileName: file.name
     });
-    fileForDisplay = pendingFile;
-  }
+  });
 
-  if (question) {
-    parts.push({ text: question });
-  }
+  if (question) parts.push({ text: question });
 
-  addUserMessage(question, history.length, fileForDisplay);
+  addUserMessage(question, history.length, filesToSend);
   userInput.value = "";
 
   history.push({ role: "user", parts: parts });
 
   if (chats[currentChatId].title === "New Chat" && history.length === 1) {
-    chats[currentChatId].title = question ? question.slice(0, 30) : "📎 " + (pendingFile ? pendingFile.name : "File");
+    chats[currentChatId].title = question ? question.slice(0, 30) : "📎 " + (filesToSend[0] ? filesToSend[0].name : "File");
     renderChatList(searchChats.value);
   }
 
   pendingFile = null;
+  pendingFiles = [];
   filePreview.classList.remove("show");
   filePreview.innerHTML = "";
 
