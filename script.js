@@ -171,20 +171,49 @@ filesOption.addEventListener("click", () => {
 
 function handleFileSelect(file) {
   if (!file) return;
+
   if (file.size > 10 * 1024 * 1024) {
     alert("File 10MB se badi hai, chhoti file try karein.");
     return;
   }
+
   const reader = new FileReader();
+
   reader.onload = () => {
+    if (typeof reader.result !== "string" || !reader.result.includes(",")) {
+      alert("File read nahi ho paayi. Dobara try karein.");
+      return;
+    }
+
     const base64Data = reader.result.split(",")[1];
+    if (!base64Data) {
+      alert("File khaali hai ya read nahi ho paayi.");
+      return;
+    }
+
     pendingFile = {
       name: file.name,
-      mimeType: file.type || "text/plain",
+      mimeType: file.type || (
+        file.name.toLowerCase().endsWith(".pdf")
+          ? "application/pdf"
+          : file.name.toLowerCase().endsWith(".txt")
+            ? "text/plain"
+            : "application/octet-stream"
+      ),
       base64: base64Data
     };
+
     showFilePreview();
   };
+
+  reader.onerror = () => {
+    alert("File read karne mein problem hui. Dobara try karein.");
+  };
+
+  reader.onabort = () => {
+    alert("File reading cancel ho gayi.");
+  };
+
   reader.readAsDataURL(file);
 }
 
@@ -213,7 +242,20 @@ function showFilePreview() {
 
   const info = document.createElement("div");
   info.className = "file-info";
-  info.innerText = "Image attached";
+
+  const mimeType = pendingFile.mimeType || "";
+  const fileName = pendingFile.name || "Attached file";
+
+  if (mimeType.startsWith("image/")) {
+    info.innerText = fileName;
+  } else if (mimeType === "application/pdf" || fileName.toLowerCase().endsWith(".pdf")) {
+    info.innerText = "PDF attached: " + fileName;
+  } else if (mimeType.startsWith("text/") || fileName.toLowerCase().endsWith(".txt")) {
+    info.innerText = "Text file attached: " + fileName;
+  } else {
+    info.innerText = "File attached: " + fileName;
+  }
+
   filePreview.appendChild(info);
 
   const removeBtn = document.createElement("button");
@@ -792,6 +834,7 @@ function editMessage(index) {
 }
 
 function regenerateResponse() {
+  if (isGenerating) return;
   const history = getCurrentHistory();
   if (history.length > 0 && history[history.length - 1].role === "model") {
     history.pop();
@@ -848,14 +891,19 @@ async function generateImageFlow(prompt) {
 }
 
 async function generateResponse() {
+  if (isGenerating) return;
+
   const history = getCurrentHistory();
   const chat = chats[currentChatId];
+  if (!chat || !history) return;
+
   isGenerating = true;
   sendBtn.disabled = true;
 
   const thinkingEl = addThinkingDots();
   const stopBtn = addStopButton();
-  currentAbortController = new AbortController();
+  const abortController = new AbortController();
+  currentAbortController = abortController;
 
   try {
     const memoryContext = memoryFacts.length > 0
@@ -892,32 +940,39 @@ Agar user koi naya important fact bataye, to Answer ke end mein: MEMORY: <fact>.
       const response = await fetch(API_URL + providerParam, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        signal: currentAbortController.signal,
+        signal: abortController.signal,
         body: JSON.stringify({
           system_instruction: { parts: [{ text: systemInstruction }] },
           contents: sanitizeForAPI(apiHistory)
         })
       });
+
       data = await response.json();
+
       if (data.error && data.error.code === 503 && i < 2) {
-        await new Promise(res => setTimeout(res, 1500 * (i + 1)));
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(resolve, 1500 * (i + 1));
+          abortController.signal.addEventListener("abort", () => {
+            clearTimeout(timer);
+            reject(new DOMException("Aborted", "AbortError"));
+          }, { once: true });
+        });
         continue;
       }
       break;
     }
 
-    thinkingEl.remove();
-    stopBtn.remove();
+    if (abortController.signal.aborted) return;
 
-    if (!data.candidates) {
-      addAIMessage(getFriendlyError(data), false, true);
+    if (!data || !data.candidates || !data.candidates[0]?.content?.parts) {
+      addAIMessage(getFriendlyError(data || {}), false, true);
       addRetryButton(() => generateResponse());
-      sendBtn.disabled = false;
-      isGenerating = false;
       return;
     }
 
-    let fullText = data.candidates[0].content.parts[0].text;
+    let fullText = data.candidates[0].content.parts
+      .map(part => part.text || "")
+      .join("\n");
 
     const memMatch = fullText.match(/MEMORY:\s*(.*)/);
     if (memMatch) {
@@ -933,10 +988,10 @@ Agar user koi naya important fact bataye, to Answer ke end mein: MEMORY: <fact>.
     const answerMatch = fullText.match(/Answer:(.*)/s);
 
     if (thinkMatch) {
-      const t = document.createElement("div");
-      t.className = "thinking-box";
-      t.innerText = "💭 " + thinkMatch[1].trim();
-      chatBox.appendChild(t);
+      const thinkingMessage = document.createElement("div");
+      thinkingMessage.className = "thinking-box";
+      thinkingMessage.innerText = "💭 " + thinkMatch[1].trim();
+      chatBox.appendChild(thinkingMessage);
     }
 
     const finalAnswer = answerMatch ? answerMatch[1].trim() : fullText;
@@ -944,25 +999,27 @@ Agar user koi naya important fact bataye, to Answer ke end mein: MEMORY: <fact>.
 
     history.push({ role: "model", parts: [{ text: fullText }] });
     saveChats();
-
     maybeSummarizeChat(currentChatId);
 
   } catch (err) {
-    thinkingEl.remove();
-    stopBtn.remove();
     if (err.name === "AbortError") {
       addAIMessage("⏹️ Response rok diya gaya.", false, true);
     } else {
+      console.error("AETHER response error:", err);
       addAIMessage("Kuch gadbad ho gayi, dobara try karein 🙏", false, true);
       addRetryButton(() => generateResponse());
     }
+  } finally {
+    thinkingEl.remove();
+    stopBtn.remove();
+    sendBtn.disabled = false;
+    isGenerating = false;
+
+    if (currentAbortController === abortController) {
+      currentAbortController = null;
+    }
   }
-
-  sendBtn.disabled = false;
-  isGenerating = false;
-  currentAbortController = null;
 }
-
 let lastMessageTime = 0;
 
 async function sendMessage() {

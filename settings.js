@@ -230,6 +230,7 @@ pageClearBtn.addEventListener("click", () => {
 document.getElementById("backupAllBtn").addEventListener("click", () => {
   const backupData = {
     chats: pageChats,
+    currentChatId: pageCurrentChatId,
     memoryFacts: pageMemoryFacts,
     settings: pageSettings,
     backupDate: new Date().toISOString(),
@@ -256,33 +257,64 @@ restoreFileInput.addEventListener("change", () => {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = () => {
+
+  reader.onload = async () => {
     try {
       const data = JSON.parse(reader.result);
-      if (!data.chats) {
+
+      if (!data || typeof data.chats !== "object" || data.chats === null || Array.isArray(data.chats)) {
         alert("Ye valid AETHER backup file nahi hai.");
         return;
       }
-      if (!confirm("Backup restore karne se abhi ki saari chats replace ho jayengi. Continue karein?")) return;
 
-      pageChats = data.chats || {};
-      pageMemoryFacts = data.memoryFacts || [];
+      if (!confirm("Backup restore karne se abhi ki chats, memory aur settings replace ho sakti hain. Continue karein?")) return;
 
-      localStorage.setItem("aether_chats_" + currentUserEmail, JSON.stringify(pageChats));
-      localStorage.setItem("aether_memory_" + currentUserEmail, JSON.stringify(pageMemoryFacts));
+      const restoredChats = data.chats;
+      const restoredMemory = Array.isArray(data.memoryFacts) ? data.memoryFacts : [];
+      const restoredSettings = data.settings && typeof data.settings === "object"
+        ? data.settings
+        : pageSettings;
+      const restoredChatId = data.currentChatId && restoredChats[data.currentChatId]
+        ? data.currentChatId
+        : null;
 
       if (userDocRef) {
-        userDocRef.set({ chats: pageChats, memoryFacts: pageMemoryFacts }, { merge: true });
+        await userDocRef.set({
+          chats: restoredChats,
+          currentChatId: restoredChatId,
+          memoryFacts: restoredMemory,
+          settings: restoredSettings
+        }, { merge: true });
       }
 
-      alert("Backup successfully restore ho gaya! Page refresh karein.");
+      pageChats = restoredChats;
+      pageCurrentChatId = restoredChatId;
+      pageMemoryFacts = restoredMemory;
+      pageSettings = restoredSettings;
+
+      localStorage.setItem("aether_chats_" + currentUserEmail, JSON.stringify(pageChats));
+      localStorage.setItem("aether_current_chat_" + currentUserEmail, pageCurrentChatId || "");
+      localStorage.setItem("aether_memory_" + currentUserEmail, JSON.stringify(pageMemoryFacts));
+      localStorage.setItem("aether_settings_" + currentUserEmail, JSON.stringify(pageSettings));
+
+      applyPageSettings();
       renderMemoryList();
+
+      alert("Backup restore ho gaya. Main chat page kholkar restored chats check karein.");
     } catch (err) {
-      alert("Backup file padhne mein error aaya.");
+      console.error("AETHER backup restore error:", err);
+      alert("Backup restore nahi ho paaya. File format ya cloud connection check karein.");
+    } finally {
+      restoreFileInput.value = "";
     }
   };
+
+  reader.onerror = () => {
+    alert("Backup file read nahi ho paayi.");
+    restoreFileInput.value = "";
+  };
+
   reader.readAsText(file);
-  restoreFileInput.value = "";
 });
 
 pageLogoutBtn.addEventListener("click", () => {
