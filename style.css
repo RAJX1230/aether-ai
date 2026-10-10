@@ -880,3 +880,185 @@ body.dark-theme .auth-box input {
     padding: 28px 18px;
   }
 }
+
+/* AETHER AI — Professional UI polish */
+:root {
+  color-scheme: light;
+  --aether-motion: 180ms;
+  --aether-ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, input, textarea, select {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:not(:disabled) {
+  transition:
+    background-color var(--aether-motion) var(--aether-ease),
+    border-color var(--aether-motion) var(--aether-ease),
+    color var(--aether-motion) var(--aether-ease),
+    box-shadow var(--aether-motion) var(--aether-ease),
+    transform var(--aether-motion) var(--aether-ease);
+}
+
+button:not(:disabled):active {
+  transform: scale(.98);
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #7777ff;
+  outline-offset: 2px;
+}
+
+.app,
+.chat-header,
+.input-area,
+.sidebar,
+.settings-page,
+.settings-page-header,
+.settings-modal {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.chat-box {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #aaa transparent;
+  overflow-anchor: auto;
+}
+
+.message {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  animation: aether-message-in 160ms ease-out both;
+}
+
+.user-msg,
+.ai-msg {
+  border-radius: 16px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.user-msg {
+  border-bottom-right-radius: 5px;
+}
+
+.ai-msg {
+  border-bottom-left-radius: 5px;
+}
+
+#userInput {
+  line-height: 1.5;
+  resize: none;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+#userInput:focus {
+  box-shadow: 0 0 0 3px rgb(119 119 255 / 12%);
+}
+
+#sendBtn:disabled,
+button:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.chat-item {
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.suggestion-chip {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.suggestion-chip:active {
+  transform: scale(.98);
+}
+
+.file-preview,
+.thinking-box,
+.code-block {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.chat-header {
+  flex-shrink: 0;
+}
+
+.input-area {
+  flex-shrink: 0;
+}
+
+@keyframes aether-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .chat-box {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .user-msg,
+  .ai-msg {
+    max-width: 100%;
+    border-radius: 15px;
+  }
+
+  .input-area {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  #userInput {
+    min-width: 0;
+  }
+
+  .suggestion-chip {
+    min-height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
