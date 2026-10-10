@@ -713,49 +713,56 @@ function addAIImageMessage(base64, mimeType, directUrl) {
   return msg;
 }
 
-const THINKING_PHRASES = [
-  "Samajh raha hoon...",
-  "Soch raha hoon...",
-  "Dimaag laga raha hoon...",
-  "Jawaab taiyar ho raha hai...",
-  "Bas ek second..."
-];
-
 function addThinkingDots(label) {
   const el = document.createElement("div");
   el.className = "thinking-box thinking-sparkle-row";
-  const textSpan = document.createElement("span");
-  textSpan.innerText = label || THINKING_PHRASES[0];
-  el.innerHTML = ICONS.sparkle;
-  el.appendChild(textSpan);
+
+  const icon = document.createElement("span");
+  icon.className = "thinking-sparkle";
+  icon.innerHTML = ICONS.sparkle;
+
+  const content = document.createElement("div");
+  content.className = "thinking-content";
+
+  const title = document.createElement("span");
+  title.className = "thinking-title";
+  title.textContent = label || "AETHER AI";
+
+  const status = document.createElement("span");
+  status.className = "thinking-status";
+  status.textContent = "Preparing your response";
+
+  const dots = document.createElement("span");
+  dots.className = "thinking-dots";
+  dots.innerHTML = "<span></span><span></span><span></span>";
+
+  content.append(title, status);
+  el.append(icon, content, dots);
   chatBox.appendChild(el);
   chatBox.scrollTop = chatBox.scrollHeight;
-
-  if (!label) {
-    let idx = 0;
-    const cycleInterval = setInterval(() => {
-      if (!document.body.contains(el)) {
-        clearInterval(cycleInterval);
-        return;
-      }
-      idx = (idx + 1) % THINKING_PHRASES.length;
-      textSpan.innerText = THINKING_PHRASES[idx];
-    }, 1800);
-  }
 
   return el;
 }
 
 function addStopButton(controller = null) {
   const btn = document.createElement("button");
-  btn.className = "stop-btn";
+  btn.className = "stop-btn generation-stop-btn";
+  btn.type = "button";
+  btn.title = "Stop generating response";
+  btn.setAttribute("aria-label", "Stop generating response");
   btn.innerHTML = ICONS.stop + " Stop";
   btn.onclick = () => {
     const targetController = controller || currentAbortController;
     if (targetController) targetController.abort();
   };
-  chatBox.appendChild(btn);
-  chatBox.scrollTop = chatBox.scrollHeight;
+
+  const inputArea = document.querySelector(".input-area");
+  if (inputArea) {
+    inputArea.appendChild(btn);
+  } else {
+    chatBox.appendChild(btn);
+  }
+
   return btn;
 }
 
@@ -990,6 +997,11 @@ async function generateResponse() {
 
   const thinkingEl = addThinkingDots();
   const abortController = new AbortController();
+  let requestTimedOut = false;
+  const requestTimeout = setTimeout(() => {
+    requestTimedOut = true;
+    abortController.abort();
+  }, 60000);
   const stopBtn = addStopButton(abortController);
   currentAbortController = abortController;
 
@@ -1010,7 +1022,10 @@ async function generateResponse() {
       ? "Tumhara current model provider Groq hai aur configured model openai/gpt-oss-120b hai. Agar user model poochhe, ye naam sach-sach batao. Khud ko GPT-4 mat kehna."
       : "Tumhara current mode Gemini-powered Smart mode hai. Agar user model poochhe, Gemini-powered mode batao; bina pakke saboot ke GPT-4 ya kisi doosre model ka claim mat karna.";
 
-    const systemInstruction = `Tum ${settings.aiName} ho — ek personal AI assistant, jise Vimal Raj aur Aniruddha ne co-create kiya hai.
+    const currentDate = new Date().toLocaleDateString("en-CA");
+    const systemInstruction = `Current date: ${currentDate}. If the user requests English, reply entirely in English. Otherwise, use the user's preferred language. Never claim a model identifier unless supported by the model configuration.
+
+Tum ${settings.aiName} ho — ek personal AI assistant, jise Vimal Raj aur Aniruddha ne co-create kiya hai.
 
 Bahut zaroori: tum HAMESHA "${settings.aiName}" ke roop mein baat karte ho. Tum warm, casual aur natural Hinglish mein jawab dete ho. Apne creator, model ya capabilities ke baare mein kabhi galat daawa mat karo. ${modelIdentityInstruction}
 
@@ -1094,7 +1109,12 @@ Agar user koi naya important fact bataye, to Answer ke end mein: MEMORY: <fact>.
     maybeSummarizeChat(responseChatId);
 
   } catch (err) {
-    if (err.name === "AbortError") {
+    if (requestTimedOut) {
+      if (currentChatId === responseChatId) {
+        addAIMessage("This request took too long. Please try again.", false, true);
+        addRetryButton(() => generateResponse());
+      }
+    } else if (err.name === "AbortError") {
       if (currentChatId === responseChatId) {
         addAIMessage("⏹️ Response rok diya gaya.", false, true);
       }
@@ -1106,6 +1126,7 @@ Agar user koi naya important fact bataye, to Answer ke end mein: MEMORY: <fact>.
       }
     }
   } finally {
+    clearTimeout(requestTimeout);
     thinkingEl.remove();
     stopBtn.remove();
 
