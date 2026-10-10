@@ -363,11 +363,14 @@ function renderChatList(filter = "") {
     titleSpan.className = "chat-item-title";
     titleSpan.innerText = chat.title;
     titleSpan.onclick = () => {
+      closeSidebar();
+
+      if (currentChatId === id) return;
+
       currentChatId = id;
       saveCurrentChat();
       renderChatList(searchChats.value);
       renderMessages();
-      closeSidebar();
     };
 
     const actions = document.createElement("div");
@@ -686,12 +689,13 @@ function addThinkingDots(label) {
   return el;
 }
 
-function addStopButton() {
+function addStopButton(controller = null) {
   const btn = document.createElement("button");
   btn.className = "stop-btn";
   btn.innerHTML = ICONS.stop + " Stop";
   btn.onclick = () => {
-    if (currentAbortController) currentAbortController.abort();
+    const targetController = controller || currentAbortController;
+    if (targetController) targetController.abort();
   };
   chatBox.appendChild(btn);
   chatBox.scrollTop = chatBox.scrollHeight;
@@ -893,6 +897,7 @@ async function generateImageFlow(prompt) {
 async function generateResponse() {
   if (isGenerating) return;
 
+  const responseChatId = currentChatId;
   const history = getCurrentHistory();
   const chat = chats[currentChatId];
   if (!chat || !history) return;
@@ -901,7 +906,7 @@ async function generateResponse() {
   sendBtn.disabled = true;
 
   const thinkingEl = addThinkingDots();
-  const stopBtn = addStopButton();
+  const stopBtn = addStopButton(abortController);
   const abortController = new AbortController();
   currentAbortController = abortController;
 
@@ -965,8 +970,10 @@ Agar user koi naya important fact bataye, to Answer ke end mein: MEMORY: <fact>.
     if (abortController.signal.aborted) return;
 
     if (!data || !data.candidates || !data.candidates[0]?.content?.parts) {
-      addAIMessage(getFriendlyError(data || {}), false, true);
-      addRetryButton(() => generateResponse());
+      if (currentChatId === responseChatId) {
+        addAIMessage(getFriendlyError(data || {}), false, true);
+        addRetryButton(() => generateResponse());
+      }
       return;
     }
 
@@ -987,7 +994,7 @@ Agar user koi naya important fact bataye, to Answer ke end mein: MEMORY: <fact>.
     const thinkMatch = fullText.match(/Thinking:(.*?)Answer:/s);
     const answerMatch = fullText.match(/Answer:(.*)/s);
 
-    if (thinkMatch) {
+    if (thinkMatch && currentChatId === responseChatId) {
       const thinkingMessage = document.createElement("div");
       thinkingMessage.className = "thinking-box";
       thinkingMessage.innerText = "💭 " + thinkMatch[1].trim();
@@ -995,28 +1002,34 @@ Agar user koi naya important fact bataye, to Answer ke end mein: MEMORY: <fact>.
     }
 
     const finalAnswer = answerMatch ? answerMatch[1].trim() : fullText;
-    addAIMessage(finalAnswer, true, true);
+    if (currentChatId === responseChatId) {
+      addAIMessage(finalAnswer, true, true);
+    }
 
     history.push({ role: "model", parts: [{ text: fullText }] });
     saveChats();
-    maybeSummarizeChat(currentChatId);
+    maybeSummarizeChat(responseChatId);
 
   } catch (err) {
     if (err.name === "AbortError") {
-      addAIMessage("⏹️ Response rok diya gaya.", false, true);
+      if (currentChatId === responseChatId) {
+        addAIMessage("⏹️ Response rok diya gaya.", false, true);
+      }
     } else {
       console.error("AETHER response error:", err);
-      addAIMessage("Kuch gadbad ho gayi, dobara try karein 🙏", false, true);
-      addRetryButton(() => generateResponse());
+      if (currentChatId === responseChatId) {
+        addAIMessage("Kuch gadbad ho gayi, dobara try karein 🙏", false, true);
+        addRetryButton(() => generateResponse());
+      }
     }
   } finally {
     thinkingEl.remove();
     stopBtn.remove();
-    sendBtn.disabled = false;
-    isGenerating = false;
 
     if (currentAbortController === abortController) {
       currentAbortController = null;
+      sendBtn.disabled = false;
+      isGenerating = false;
     }
   }
 }
@@ -1129,40 +1142,88 @@ if (SpeechRecognition) {
 }
 
 async function initApp() {
-  chatBox.innerHTML = `<div class="welcome-screen"><img src="logo.svg" class="splash-logo" alt="AETHER"></div>`;
+  const defaults = { theme: "light", fontSize: "medium", aiName: "AETHER AI" };
+  const readLocal = (key, fallback) => {
+    try {
+      const value = localStorage.getItem(key);
+      return value === null ? fallback : JSON.parse(value);
+    } catch {
+      return fallback;
+    }
+  };
+
+  const chatsKey = "aether_chats_" + currentUserEmail;
+  const memoryKey = "aether_memory_" + currentUserEmail;
+  const settingsKey = "aether_settings_" + currentUserEmail;
+  const localChats = readLocal(chatsKey, {});
+  const localMemory = readLocal(memoryKey, []);
+  const localSettings = readLocal(settingsKey, defaults);
+  const savedChatId = localStorage.getItem("aether_current_chat_" + currentUserEmail);
+
+  chats = localChats && typeof localChats === "object" ? localChats : {};
+  memoryFacts = Array.isArray(localMemory) ? localMemory : [];
+  settings = localSettings && typeof localSettings === "object"
+    ? { ...defaults, ...localSettings }
+    : { ...defaults };
+
+  const normalizeChats = () => {
+    Object.values(chats).forEach(c => {
+      if (!c || typeof c !== "object") return;
+      if (c.summary === undefined) c.summary = "";
+      if (c.summarizedUpTo === undefined) c.summarizedUpTo = 0;
+    });
+  };
+
+  const renderApp = () => {
+    currentChatId = savedChatId && chats[savedChatId] ? savedChatId : null;
+    userAvatar.innerText = getFirstName().charAt(0);
+    applySettings();
+    renderChatList();
+    renderMessages();
+  };
+
+  normalizeChats();
+  renderApp();
 
   try {
     const doc = await userDocRef.get();
-    const localChats = JSON.parse(localStorage.getItem("aether_chats_" + currentUserEmail)) || {};
-    const hasLocalData = Object.keys(localChats).length > 0;
 
     if (doc.exists) {
-      const data = doc.data();
-      chats = hasLocalData ? localChats : (data.chats || {});
-      memoryFacts = data.memoryFacts || [];
-      settings = data.settings || { theme: "light", fontSize: "medium", aiName: "AETHER AI" };
+      const data = doc.data() || {};
+      const hasLocalChats = Object.keys(chats).length > 0;
+
+      if (!hasLocalChats && data.chats && typeof data.chats === "object") {
+        chats = data.chats;
+      }
+
+      if (!localStorage.getItem(memoryKey)) {
+        memoryFacts = Array.isArray(data.memoryFacts) ? data.memoryFacts : [];
+      }
+
+      if (!localStorage.getItem(settingsKey)) {
+        settings = { ...defaults, ...(data.settings || {}) };
+      }
+
+      normalizeChats();
+
+      const cloudChatId = data.currentChatId;
+      currentChatId = savedChatId && chats[savedChatId]
+        ? savedChatId
+        : (cloudChatId && chats[cloudChatId] ? cloudChatId : null);
+
+      localStorage.setItem(chatsKey, JSON.stringify(chats));
+      localStorage.setItem(memoryKey, JSON.stringify(memoryFacts));
+      localStorage.setItem(settingsKey, JSON.stringify(settings));
+      localStorage.setItem("aether_current_chat_" + currentUserEmail, currentChatId || "");
+
+      userAvatar.innerText = getFirstName().charAt(0);
+      applySettings();
+      renderChatList();
+      renderMessages();
     } else {
-      chats = JSON.parse(localStorage.getItem("aether_chats_" + currentUserEmail)) || {};
-      memoryFacts = JSON.parse(localStorage.getItem("aether_memory_" + currentUserEmail)) || [];
-      settings = { theme: "light", fontSize: "medium", aiName: "AETHER AI" };
       syncToCloud();
     }
   } catch (err) {
-    chats = JSON.parse(localStorage.getItem("aether_chats_" + currentUserEmail)) || {};
-    memoryFacts = JSON.parse(localStorage.getItem("aether_memory_" + currentUserEmail)) || [];
-    settings = JSON.parse(localStorage.getItem("aether_settings_" + currentUserEmail)) || { theme: "light", fontSize: "medium", aiName: "AETHER AI" };
+    console.log("Cloud load skipped; using local data:", err);
   }
-
-  Object.values(chats).forEach(c => {
-    if (c.summary === undefined) c.summary = "";
-    if (c.summarizedUpTo === undefined) c.summarizedUpTo = 0;
-  });
-
-  const savedChatId = localStorage.getItem("aether_current_chat_" + currentUserEmail);
-  currentChatId = savedChatId && chats[savedChatId] ? savedChatId : null;
-
-  userAvatar.innerText = getFirstName().charAt(0);
-  applySettings();
-  renderChatList();
-  renderMessages();
 }
