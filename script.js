@@ -906,8 +906,8 @@ async function generateResponse() {
   sendBtn.disabled = true;
 
   const thinkingEl = addThinkingDots();
-  const stopBtn = addStopButton(abortController);
   const abortController = new AbortController();
+  const stopBtn = addStopButton(abortController);
   currentAbortController = abortController;
 
   try {
