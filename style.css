@@ -792,3 +792,91 @@ body.dark-theme .google-btn { background: #2b2b28; border-color: #3a3a37; color:
   font-size: 16px;
 }
 body.dark-theme .attach-option .attach-icon { background: #33332f; }
+
+/* AETHER AI - Login polish */
+.auth-container {
+  padding: 24px 18px;
+  background: #faf9f7;
+}
+
+.auth-box {
+  max-width: 380px;
+  padding: 34px 26px;
+  border-radius: 22px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.07);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.auth-box input {
+  min-height: 48px;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-box input:focus {
+  border-color: #777;
+  box-shadow: 0 0 0 3px rgba(80, 80, 80, 0.09);
+}
+
+.auth-box button {
+  min-height: 46px;
+  border-radius: 12px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.auth-box button:active {
+  transform: scale(0.985);
+}
+
+.auth-box button:disabled {
+  cursor: wait;
+}
+
+.google-btn {
+  justify-content: center;
+  gap: 10px;
+}
+
+.auth-toggle span,
+#forgotLink {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.auth-toggle span:hover,
+#forgotLink:hover {
+  opacity: 0.7;
+}
+
+.auth-error,
+.auth-success {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+body.dark-theme .auth-container {
+  background: #191919;
+}
+
+body.dark-theme .auth-box {
+  background: #262624;
+  border-color: #3a3a37;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+}
+
+body.dark-theme .auth-box h2,
+body.dark-theme .auth-toggle span {
+  color: #f5f5f5;
+}
+
+body.dark-theme .auth-box input {
+  background: #1d1d1b;
+  color: #f5f5f5;
+  border-color: #44443f;
+}
+
+@media (max-width: 380px) {
+  .auth-box {
+    padding: 28px 18px;
+  }
+}

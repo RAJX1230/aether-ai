@@ -28,17 +28,17 @@ togglePassword.addEventListener("click", () => {
 
 function getFriendlyAuthError(code) {
   const map = {
-    "auth/invalid-email": "Email sahi format mein nahi hai.",
-    "auth/missing-password": "Password bharna zaroori hai.",
-    "auth/weak-password": "Password kam se kam 6 characters ka hona chahiye.",
-    "auth/email-already-in-use": "Ye email pehle se registered hai, Login karein.",
-    "auth/user-not-found": "Ye email registered nahi hai, pehle Signup karein.",
-    "auth/wrong-password": "Password galat hai, dobara try karein.",
-    "auth/invalid-credential": "Email ya password galat hai.",
-    "auth/too-many-requests": "Bahut zyada attempts ho gaye, thodi der baad try karein.",
-    "auth/network-request-failed": "Internet connection check karein."
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/missing-password": "Please enter your password.",
+    "auth/weak-password": "Password must be at least 6 characters long.",
+    "auth/email-already-in-use": "This email is already registered. Please log in.",
+    "auth/user-not-found": "No account found for this email. Please sign up.",
+    "auth/wrong-password": "Incorrect password. Please try again.",
+    "auth/invalid-credential": "Incorrect email or password.",
+    "auth/too-many-requests": "Too many attempts. Please try again later.",
+    "auth/network-request-failed": "Please check your internet connection."
   };
-  return map[code] || "Kuch gadbad ho gayi, dobara try karein.";
+  return map[code] || "Something went wrong. Please try again.";
 }
 
 function attachToggleListener() {
@@ -51,12 +51,12 @@ function handleToggle() {
   authError.className = "auth-error";
   if (isSignupMode) {
     authTitle.innerText = "AETHER AI Signup";
-    authActionBtn.innerText = "Signup";
-    authToggleText.innerHTML = 'Pehle se account hai? <span id="toggleLink">Login karein</span>';
+    authActionBtn.innerText = "Create account";
+    authToggleText.innerHTML = 'Already have an account? <span id="toggleLink">Log in</span>';
   } else {
     authTitle.innerText = "AETHER AI Login";
-    authActionBtn.innerText = "Login";
-    authToggleText.innerHTML = 'Naya account nahi hai? <span id="toggleLink">Signup karein</span>';
+    authActionBtn.innerText = "Log in";
+    authToggleText.innerHTML = 'New to AETHER AI? <span id="toggleLink">Create account</span>';
   }
   attachToggleListener();
 }
@@ -68,22 +68,22 @@ forgotLink.addEventListener("click", () => {
   authError.className = "auth-error";
 
   if (!email) {
-    authError.innerText = "Pehle apna email daalein, phir yahan tap karein.";
+    authError.innerText = "Enter your email address first.";
     return;
   }
 
-  forgotLink.innerText = "Bhej rahe hain...";
+  forgotLink.innerText = "Sending reset link...";
 
   auth.sendPasswordResetEmail(email)
     .then(() => {
       authError.className = "auth-success";
-      authError.innerText = "Reset link aapke email par bhej diya gaya hai. Inbox check karein.";
-      forgotLink.innerText = "Password bhool gaye?";
+      authError.innerText = "Password reset link sent. Please check your inbox.";
+      forgotLink.innerText = "Forgot password?";
     })
     .catch((err) => {
       authError.className = "auth-error";
       authError.innerText = getFriendlyAuthError(err.code);
-      forgotLink.innerText = "Password bhool gaye?";
+      forgotLink.innerText = "Forgot password?";
     });
 });
 
@@ -92,7 +92,7 @@ document.getElementById("googleLoginBtn").addEventListener("click", () => {
   auth.signInWithPopup(provider)
     .then(() => { window.location.href = "index.html"; })
     .catch((err) => {
-      authError.innerText = "Google login nahi ho paya, dobara try karein.";
+      authError.innerText = "Google sign-in failed. Please try again.";
     });
 });
 
@@ -103,12 +103,12 @@ authActionBtn.addEventListener("click", () => {
   authError.innerText = "";
 
   if (!email || !password) {
-    authError.innerText = "Email aur password dono bharein.";
+    authError.innerText = "Please enter both email and password.";
     return;
   }
 
   authActionBtn.disabled = true;
-  authActionBtn.innerText = "Wait...";
+  authActionBtn.innerText = "Please wait...";
 
   if (isSignupMode) {
     auth.createUserWithEmailAndPassword(email, password)
@@ -118,7 +118,7 @@ authActionBtn.addEventListener("click", () => {
       .catch((err) => {
         authError.innerText = getFriendlyAuthError(err.code);
         authActionBtn.disabled = false;
-        authActionBtn.innerText = "Signup";
+        authActionBtn.innerText = "Create account";
       });
   } else {
     auth.signInWithEmailAndPassword(email, password)
@@ -128,7 +128,7 @@ authActionBtn.addEventListener("click", () => {
       .catch((err) => {
         authError.innerText = getFriendlyAuthError(err.code);
         authActionBtn.disabled = false;
-        authActionBtn.innerText = "Login";
+        authActionBtn.innerText = "Log in";
       });
   }
 });
