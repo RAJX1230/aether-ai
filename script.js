@@ -1063,7 +1063,8 @@ async function sendMessage() {
     /^(image|picture|photo)\s+of\b/i.test(question) ||
     /^(please\s+)?(draw|paint|illustrate)\s+(me\s+)?(a|an|the)\s+\w+/i.test(question);
 
-  if (explicitImageCommand || automaticImageRequest) {
+  // Keep attachments in normal chat instead of routing them to image generation.
+  if ((explicitImageCommand || automaticImageRequest) && !pendingFile) {
     const imgPrompt = explicitImageCommand
       ? question.slice(7).trim()
       : question.trim();

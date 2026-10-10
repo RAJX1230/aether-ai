@@ -1062,3 +1062,27 @@ button:disabled {
     transition-duration: .01ms !important;
   }
 }
+
+/* Attachment preview polish */
+.file-preview { min-width: 0; border-radius: 14px 14px 0 0; }
+.file-preview img {
+  width: 48px; height: 48px; flex: 0 0 48px;
+  object-fit: cover; border-radius: 10px;
+  border: 1px solid rgba(128,128,128,.18);
+}
+.file-preview .file-info {
+  min-width: 0; overflow-wrap: anywhere;
+}
+.file-preview .remove-file {
+  width: 34px; height: 34px; flex: 0 0 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: rgba(201,85,61,.09);
+}
+.input-area { padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+#userInput { min-height: 42px; }
+#userInput:focus { box-shadow: 0 0 0 3px rgba(80,100,180,.10); }
+@media (max-width: 420px) {
+  .input-area { gap: 6px; padding-left: 8px; padding-right: 8px; }
+  #attachBtn, #micBtn, #sendBtn { width: 38px; height: 38px; }
+  .file-preview { padding: 8px; gap: 9px; }
+}
