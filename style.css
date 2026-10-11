@@ -1847,3 +1847,64 @@ body.dark-theme .thinking-dots span { background: #b09aff; }
     line-height: 1.7;
   }
 }
+
+/* ===== SMOOTH PREMIUM POLISH ===== */
+.message {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: transform 0.15s ease;
+}
+
+.chat-item {
+  transition: background 0.15s ease, padding-left 0.15s ease;
+}
+.chat-item:active {
+  transform: scale(0.98);
+}
+
+.sidebar {
+  box-shadow: 2px 0 20px rgba(0,0,0,0.06);
+}
+
+#sendBtn, #attachBtn, #micBtn {
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+#sendBtn:active, #attachBtn:active, #micBtn:active {
+  transform: scale(0.9);
+}
+
+.new-chat-btn, .save-btn, .auth-box button {
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.new-chat-btn:active, .save-btn:active, .auth-box button:active {
+  transform: scale(0.97);
+  filter: brightness(0.92);
+}
+
+.suggestion-chip {
+  transition: transform 0.15s ease;
+}
+.suggestion-chip:active {
+  transform: scale(0.95);
+}
+
+.chat-box {
+  scroll-behavior: smooth;
+}
+
+#userInput {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+#userInput:focus {
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
+}
+
+.s-row.clickable {
+  transition: background 0.15s ease;
+}
+
+.nav-item {
+  transition: background 0.15s ease, padding-left 0.15s ease;
+}
+.nav-item:active {
+  padding-left: 14px;
+}
