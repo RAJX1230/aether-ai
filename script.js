@@ -79,6 +79,37 @@ let pendingFiles = [];
 let settings = { theme: "light", fontSize: "medium", aiName: "AETHER AI" };
 let saveTimeout = null;
 
+function customPrompt(title, defaultValue) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById("promptOverlay");
+    const modal = document.getElementById("promptModal");
+    const titleEl = document.getElementById("promptTitle");
+    const input = document.getElementById("promptInput");
+    const okBtn = document.getElementById("promptOkBtn");
+    const cancelBtn = document.getElementById("promptCancelBtn");
+
+    titleEl.innerText = title;
+    input.value = defaultValue || "";
+    overlay.classList.add("show");
+    modal.classList.add("show");
+    setTimeout(() => input.focus(), 50);
+
+    function cleanup(result) {
+      overlay.classList.remove("show");
+      modal.classList.remove("show");
+      okBtn.onclick = null;
+      cancelBtn.onclick = null;
+      input.onkeypress = null;
+      resolve(result);
+    }
+
+    okBtn.onclick = () => cleanup(input.value.trim());
+    cancelBtn.onclick = () => cleanup(null);
+    overlay.onclick = () => cleanup(null);
+    input.onkeypress = (e) => { if (e.key === "Enter") cleanup(input.value.trim()); };
+  });
+}
+
 function getFriendlyError(data) {
   console.log("Raw error:", data);
   const code = data && data.error ? data.error.code : null;
@@ -408,11 +439,11 @@ function renderChatList(filter = "") {
 
     const renameBtn = document.createElement("button");
     renameBtn.innerHTML = ICONS.edit;
-    renameBtn.onclick = (e) => {
+    renameBtn.onclick = async (e) => {
       e.stopPropagation();
-      const newTitle = prompt("Naya naam dein:", chat.title);
-      if (newTitle && newTitle.trim()) {
-        chat.title = newTitle.trim();
+      const newTitle = await customPrompt("Chat ka naya naam", chat.title);
+      if (newTitle) {
+        chat.title = newTitle;
         saveChats();
         renderChatList(searchChats.value);
       }
@@ -911,15 +942,15 @@ function renderMessages() {
   });
 }
 
-function editMessage(index) {
+async function editMessage(index) {
   const history = getCurrentHistory();
   const textPart = history[index].parts.find(p => p.text);
   const oldText = textPart ? textPart.text : "";
-  const newText = prompt("Message edit karein:", oldText);
-  if (newText === null || !newText.trim()) return;
+  const newText = await customPrompt("Message edit karein", oldText);
+  if (!newText) return;
 
   history.splice(index);
-  history.push({ role: "user", parts: [{ text: newText.trim() }] });
+  history.push({ role: "user", parts: [{ text: newText }] });
   if (chats[currentChatId].summarizedUpTo > history.length) {
     chats[currentChatId].summarizedUpTo = 0;
     chats[currentChatId].summary = "";
