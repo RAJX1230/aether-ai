@@ -1810,3 +1810,40 @@ body.dark-theme .thinking-dots span { background: #b09aff; }
   height: 14px;
   flex-shrink: 0;
 }
+
+/* AETHER AI — Center welcome text on mobile */
+.welcome-screen {
+  text-align: center !important;
+  align-items: center;
+}
+
+.welcome-screen .welcome-description {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto 28px !important;
+  padding: 0 8px;
+  box-sizing: border-box;
+  text-align: center !important;
+  line-height: 1.65;
+  overflow-wrap: break-word;
+}
+
+.welcome-screen .welcome-eyebrow,
+.welcome-screen h2,
+.welcome-screen .suggestions-heading {
+  width: 100%;
+  text-align: center !important;
+}
+
+@media (max-width: 480px) {
+  .welcome-screen {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .welcome-screen .welcome-description {
+    max-width: 340px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+}

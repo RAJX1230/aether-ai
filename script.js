@@ -94,14 +94,16 @@ exportBtn.addEventListener("click", () => {
 });
 
 function stripImagesForCloud(chatsObj) {
-  const clone = JSON.parse(JSON.stringify(chatsObj));
+  const clone = JSON.parse(JSON.stringify(chatsObj || {}));
   Object.values(clone).forEach(chat => {
+    if (!chat || typeof chat !== "object" || !Array.isArray(chat.history)) return;
     chat.history.forEach(item => {
-      item.parts = item.parts.map(p => {
-        if (p.inline_data) {
-          return { strippedImage: true, fileName: p.fileName || "image" };
+      if (!item || typeof item !== "object" || !Array.isArray(item.parts)) return;
+      item.parts = item.parts.map(part => {
+        if (part && part.inline_data) {
+          return { strippedImage: true, fileName: part.fileName || "image" };
         }
-        return p;
+        return part;
       });
     });
   });
@@ -1293,11 +1295,9 @@ async function initApp() {
 
     if (doc.exists) {
       const data = doc.data() || {};
-      const hasLocalChats = Object.keys(chats).length > 0;
-
-      if (!hasLocalChats && data.chats && typeof data.chats === "object") {
-        chats = data.chats;
-      }
+      // Merge cloud chats while preserving local chats with matching IDs.
+      const cloudChats = data.chats && typeof data.chats === "object" ? data.chats : {};
+      chats = { ...cloudChats, ...chats };
 
       if (!localStorage.getItem(memoryKey)) {
         memoryFacts = Array.isArray(data.memoryFacts) ? data.memoryFacts : [];
