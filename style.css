@@ -2189,3 +2189,37 @@ body.dark-theme .nav-item:active {
 .sidebar.open {
   left: 0;
 }
+
+/* Fix sidebar: keep recent chat history visible */
+.sidebar {
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
+  padding-bottom: 12px;
+}
+
+.sidebar-top {
+  flex-shrink: 0;
+}
+
+.sidebar-header,
+.nav-links,
+.new-chat-btn,
+.section-label {
+  flex-shrink: 0;
+}
+
+#chatList,
+.chat-list,
+.chat-history {
+  min-height: 80px;
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.sidebar-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+}
