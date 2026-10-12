@@ -2181,3 +2181,11 @@ body.dark-theme .nav-item:active {
     padding: 15px 14px;
   }
 }
+
+/* FIX: Fully hide sidebar when closed */
+.sidebar {
+  left: -300px;
+}
+.sidebar.open {
+  left: 0;
+}
