@@ -2253,3 +2253,142 @@ body.dark-theme .nav-item:active {
 .sidebar-footer {
   margin-top: 8px;
 }
+
+/* AETHER sidebar — compact ChatGPT-style layout */
+.sidebar {
+  width: min(270px, 86vw);
+  left: calc(-1 * min(270px, 86vw));
+  height: 100vh;
+  height: 100dvh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 12px 10px;
+  gap: 0;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar-top {
+  flex: 0 0 auto;
+  padding: 4px 8px 12px;
+}
+
+.brand {
+  font-size: 22px;
+}
+
+.sidebar-header {
+  flex: 0 0 auto;
+}
+
+.sidebar-header input {
+  box-sizing: border-box;
+  min-height: 42px;
+  padding: 9px 12px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.nav-links {
+  flex: 0 0 auto;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.nav-item {
+  min-height: 40px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  gap: 10px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 400;
+  transform: none;
+}
+
+.nav-item:active {
+  padding-left: 10px;
+}
+
+.nav-item svg {
+  width: 19px;
+  height: 19px;
+}
+
+.section-label {
+  flex: 0 0 auto;
+  margin: 8px 0 5px;
+  padding: 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+}
+
+.new-chat-btn {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 9px 12px;
+  margin: 0 0 6px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+#chatList.chat-list {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+}
+
+.chat-item {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 8px 9px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  gap: 6px;
+}
+
+.chat-item-actions {
+  gap: 4px;
+}
+
+.sidebar-footer {
+  flex: 0 0 auto;
+  margin-top: 4px;
+  padding-top: 10px;
+  gap: 7px;
+}
+
+.sidebar-footer .user-email {
+  font-size: 11px;
+}
+
+.sidebar-footer button {
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+@media (max-height: 700px) {
+  .nav-item {
+    min-height: 36px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  .nav-links {
+    margin-bottom: 4px;
+  }
+
+  .section-label {
+    margin-top: 4px;
+  }
+}
