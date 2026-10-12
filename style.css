@@ -2223,3 +2223,33 @@ body.dark-theme .nav-item:active {
   flex-shrink: 0;
   margin-top: auto;
 }
+
+/* AETHER sidebar: preserve space for chat history */
+.sidebar {
+  overflow: hidden !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-top,
+.sidebar-header,
+.nav-links,
+.sidebar > .section-label,
+.new-chat-btn,
+.sidebar-footer {
+  flex-shrink: 0;
+}
+
+#chatList.chat-list {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 120px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-direction: column;
+  padding-bottom: 8px;
+}
+
+.sidebar-footer {
+  margin-top: 8px;
+}
