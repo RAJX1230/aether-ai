@@ -4,11 +4,14 @@ const voiceScreen = document.getElementById("voiceScreen");
 const statusText = document.getElementById("statusText");
 const transcriptText = document.getElementById("transcriptText");
 const muteBtn = document.getElementById("muteBtn");
+const langToggleBtn = document.getElementById("langToggleBtn");
 
 let currentUserEmail = "";
 let conversationHistory = [];
 let isMuted = false;
 let voiceModeActive = true;
+let currentLang = "hi-IN";
+let bestVoice = null;
 
 auth.onAuthStateChanged((user) => {
   if (!user) {
@@ -17,6 +20,32 @@ auth.onAuthStateChanged((user) => {
     currentUserEmail = user.email;
     startListening();
   }
+});
+
+function pickBestVoice() {
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return;
+
+  const wantLang = currentLang === "hi-IN" ? "hi" : "en";
+  const candidates = voices.filter(v => v.lang.toLowerCase().startsWith(wantLang));
+
+  bestVoice =
+    candidates.find(v => /google/i.test(v.name) && /female/i.test(v.name)) ||
+    candidates.find(v => /google/i.test(v.name)) ||
+    (wantLang === "en" ? voices.find(v => v.lang === "en-IN") : null) ||
+    candidates[0] ||
+    voices[0];
+}
+if ("speechSynthesis" in window) {
+  pickBestVoice();
+  window.speechSynthesis.onvoiceschanged = pickBestVoice;
+}
+
+langToggleBtn.addEventListener("click", () => {
+  currentLang = currentLang === "hi-IN" ? "en-IN" : "hi-IN";
+  langToggleBtn.innerText = currentLang === "hi-IN" ? "हिं / EN" : "EN / हिं";
+  pickBestVoice();
+  if (recognition) recognition.lang = currentLang;
 });
 
 function setState(state, text) {
@@ -28,15 +57,15 @@ const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecogni
 let recognition = null;
 
 if (!SpeechRecognition) {
-  setState("idle", "Ye browser voice support nahi karta");
+  setState("idle", "Voice not supported on this browser");
 } else {
   recognition = new SpeechRecognition();
-  recognition.lang = "hi-IN";
+  recognition.lang = currentLang;
   recognition.continuous = false;
   recognition.interimResults = false;
 
   recognition.onstart = () => {
-    setState("listening", "Sun raha hoon...");
+    setState("listening", "Listening...");
     transcriptText.innerText = "";
   };
 
@@ -50,22 +79,18 @@ if (!SpeechRecognition) {
     if (event.error === "no-speech") {
       startListening();
     } else {
-      setState("idle", "Mic error, dobara try karein");
+      setState("idle", "Mic error, try again");
     }
   };
 
-  recognition.onend = () => {
-    // agar recognition khatam ho gayi bina result ke (jaise chup rehne pe), wapas suno
-  };
+  recognition.onend = () => {};
 }
 
 function startListening() {
   if (!voiceModeActive || !recognition) return;
   try {
     recognition.start();
-  } catch (e) {
-    // pehle se chal raha ho to ignore karo
-  }
+  } catch (e) {}
 }
 
 async function handleUserSpeech(text) {
@@ -74,12 +99,16 @@ async function handleUserSpeech(text) {
     return;
   }
 
-  setState("thinking", "Soch raha hoon...");
+  setState("thinking", "Thinking...");
 
   conversationHistory.push({ role: "user", parts: [{ text: text }] });
 
   try {
-    const systemInstruction = `Tum AETHER ho, ek friendly AI dost, jo abhi voice mein baat kar rahe ho. Chhote, natural, conversational jawaab do (2-3 sentences se zyada nahi, jaise koi phone pe baat kar raha ho). Koi "Thinking:" ya "Answer:" label mat likho, seedha jawaab do. Hinglish mein baat karo.`;
+    const langNote = currentLang === "hi-IN"
+      ? "Hinglish mein (Roman script) chhote, natural jawaab do."
+      : "Reply naturally in English only.";
+
+    const systemInstruction = `You are AETHER, a friendly AI companion having a live voice conversation. ${langNote} Keep replies short (2-3 sentences max), warm and conversational, like a real phone call. Never write labels like "Thinking:" or "Answer:" — just reply directly.`;
 
     const response = await fetch(API_URL_VOICE, {
       method: "POST",
@@ -92,7 +121,7 @@ async function handleUserSpeech(text) {
     const data = await response.json();
 
     if (!data.candidates) {
-      setState("idle", "Kuch gadbad ho gayi, dobara try karein");
+      setState("idle", "Something went wrong, try again");
       setTimeout(startListening, 1500);
       return;
     }
@@ -104,7 +133,7 @@ async function handleUserSpeech(text) {
     speakReply(replyText);
 
   } catch (err) {
-    setState("idle", "Network error, dobara try karein");
+    setState("idle", "Network error, try again");
     setTimeout(startListening, 1500);
   }
 }
@@ -115,12 +144,14 @@ function speakReply(text) {
     return;
   }
 
-  setState("speaking", "Bol raha hoon...");
+  setState("speaking", "Speaking...");
 
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "hi-IN";
-  utterance.rate = 1;
+  utterance.lang = currentLang;
+  if (bestVoice) utterance.voice = bestVoice;
+  utterance.rate = 0.97;
+  utterance.pitch = 1.02;
 
   utterance.onend = () => {
     if (voiceModeActive) startListening();
